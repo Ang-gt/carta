@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta para ti 💌</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #ffe4e1; /* rosa pastel claro */
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Pantalla de entrega */
+  #loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffe4e1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  .loading-animation {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #e69500;
+    border-top: 6px solid #fff176;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+  #loading-text {
+    font-size: 36px;
+    color: #e69500;
+    font-weight: bold;
+    animation: pulseText 1s infinite alternate;
+  }
+  @keyframes pulseText {
+    0% { opacity: 0.3; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.1); }
+  }
+
+  /* Sobre cerrado */
+  #envelope {
+    width: 450px;
+    height: 300px;
+    background: #fff59d;
+    margin: 80px auto;
+    position: relative;
+    cursor: pointer;
+    border-radius: 10px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+    display: none;
+  }
+  #envelope:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-left: 225px solid transparent;
+    border-right: 225px solid transparent;
+    border-top: 150px solid #fff176;
+  }
+  #envelope:after {
+    content: "💌";
+    position: absolute;
+    top: 100px;
+    left: 180px;
+    font-size: 64px;
+  }
+
+  /* Carta abierta */
+  #card-container {
+    display: none;
+    position: relative;
+    margin: 40px auto;
+    width: 90%;
+    max-width: 850px;
+  }
+
+  #card-frame {
+    border: 16px solid white; /* marco grueso */
+    border-radius: 16px;
+    padding: 20px; /* separación del borde del marco */
+    box-sizing: border-box;
+    position: relative;
+    background: transparent;
+    z-index: 2;
+  }
+
+  #card {
+    background: #fffda0; /* hoja amarillo mantequilla */
+    border-radius: 12px;
+    padding: 25px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 3;
+  }
+
+  h1 { text-align: center; color: #e69500; font-size: 48px; margin-bottom: 20px; }
+  p { font-size: 18px; line-height: 1.6; color: #444; text-align: center; }
+
+  /* Imágenes diagonales */
+  .images { display: flex; justify-content: space-between; margin: 16px 0; position: relative; }
+  .images img { width: 150px; border-radius: 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); position: relative; }
+  .images img.left { top: 0; }
+  .images img.right { top: 18rem; } /* mucho más abajo */
+  .middle-text { font-size: 20px; font-weight: bold; color: #e69500; position: absolute; left: 50%; transform: translateX(-50%); top: 2rem; }
+
+  /* Video centrado más abajo con marco blanco */
+  .video-container {
+    display: flex;
+    justify-content: center;
+    margin: 30rem 0 2rem 0; /* más abajo que la imagen derecha */
+    position: relative;
+  }
+  .video-container video {
+    width: 80%;
+    max-width: 500px;
+    border: 8px solid white; /* marco blanco */
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* GIFs pequeños diagonales */
+  .gif-text-row { display: flex; justify-content: space-between; margin-top: 30px; position: relative; }
+  .gif-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gif-left { margin-top: 18rem; } /* mucho más abajo que la derecha */
+  .gif-right { margin-top: 16rem; } /* GIF derecho más al centro */
+  .gif-text img { width: 100px; height: 100px; border-radius: 12px; }
+  .gif-text span { font-size: 18px; font-weight: bold; color: #e69500; }
+
+  /* Reproductor de música pegado al video */
+  .music-box { 
+    width: 250px;
+    margin: 10px auto 40px auto; /* más cerca del video */
+    text-align: center;
+  }
+  audio { width: 100%; border-radius: 10px; outline: none; }
+
+  /* Texto de agradecimiento */
+  .thanks-text {
+    text-align: center;
+    font-size: 22px;
+    color: #e69500;
+    font-weight: bold;
+    margin-top: 40px;
+  }
+
+  /* Corazones cayendo detrás */
+  #hearts-container { position: fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+  .heart{position:absolute;width:20px;height:20px;background-color:#ffd966;transform:rotate(-45deg);animation:fall linear forwards;}
+  .heart:before,.heart:after{content:"";position:absolute;width:20px;height:20px;background:#ffd966;border-radius:50%;}
+  .heart:before{top:-10px;left:0;} 
+  .heart:after{left:10px;top:0;}
+  @keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0.7;}}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-animation"></div>
+  <div id="loading-text">Entregando carta...</div>
+</div>
+
+<div id="envelope"></div>
+
+<div id="card-container">
+  <div id="hearts-container"></div>
+  <div id="card-frame">
+    <div id="card">
+      <h1>Para ti 💛</h1>
+      <p>Te escribo esta carta con mucho cariño. Cuando la abres, los corazones caen porque cada uno representa todo el amor que siento por ti. 🌼</p>
+
+      <!-- Imágenes diagonales -->
+      <div class="images">
+        <img src="https://picsum.photos/200/200?random=1" class="left" alt="imagen izquierda">
+        <div class="middle-text">te amo más que a nada</div>
+        <img src="https://picsum.photos/200/200?random=2" class="right" alt="imagen derecha">
+      </div>
+
+      <!-- Video central más abajo con marco blanco -->
+      <div class="video-container">
+        <video id="specialVideo" src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay muted loop></video>
+      </div>
+
+      <!-- Reproductor de música pegado al video -->
+      <div class="music-box">
+        <audio id="music" controls autoplay>
+          <source src="https://youtu.be/9wiEM0s4aCQ?si=hd7DlUf-as6sU09y" type="audio/mpeg">
+          Tu navegador no soporta audio.
+        </audio>
+      </div>
+
+      <!-- GIFs pequeños diagonales -->
+      <div class="gif-text-row">
+        <div class="gif-text gif-left">
+          <img src="https://media.giphy.com/media/3o6ZtpxSZbQRRnwCKQ/giphy.gif" alt="GIF pequeño izquierdo">
+          <span>lasklhflafhla</span>
+        </div>
+        <div class="gif-text gif-right">
+          <img src="https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif" alt="GIF pequeño derecho">
+          <span>siempre estás en mi mind</span>
+        </div>
+      </div>
+
+      <!-- Texto de agradecimiento al final -->
+      <div class="thanks-text">
+        Gracias por todo, te amo con todo mi corazón 💛
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const loading = document.getElementById("loading");
+const envelope = document.getElementById("envelope");
+const cardContainer = document.getElementById("card-container");
+const music = document.getElementById("music");
+const heartsContainer = document.getElementById("hearts-container");
+const specialVideo = document.getElementById("specialVideo");
+
+setTimeout(() => {
+  loading.style.display = "none";
+  envelope.style.display = "block";
+}, 5000);
+
+let opened = false;
+envelope.addEventListener("dblclick", () => {
+  if(!opened){
+    envelope.style.display = "none";
+    cardContainer.style.display = "block";
+    music.play().catch(()=>{});
+    specialVideo.play().catch(()=>{});
+    startHearts();
+    opened = true;
+  }
+});
+
+function startHearts(){
+  setInterval(()=>{
+    for(let i=0;i<3;i++){
+      let heart = document.createElement("div");
+      heart.className = "heart";
+      heart.style.left = Math.random()*window.innerWidth + "px";
+      heart.style.top = "-30px";
+      heart.style.animationDuration = (4 + Math.random()*3) + "s";
+      heartsContainer.appendChild(heart);
+      setTimeout(()=>heart.remove(),7000);
+    }
+  },300);
+}
+</script>
+
+</body>
+</html>
